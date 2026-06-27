@@ -76,10 +76,15 @@ def proposal_opener(job: Job) -> str:
     if "Spanish" in job.eligibility_note:
         note = " (and I'm fully bilingual EN/ES if that helps)"
 
-    return (
+    parts = [
         f"Hi — I read your post: “{ask}”. {credential}, so this is squarely "
-        f"in my wheelhouse{note}.{pay}. "
-        f"A couple of quick questions so I can give you an accurate plan: "
-        f"what's your current setup, and what does “done” look like for the first milestone? "
-        f"I can share a similar build I've delivered and a rough timeline."
+        f"in my wheelhouse{note}."
+    ]
+    if pay:
+        parts.append(pay.strip().rstrip(".") + ".")
+    parts.append(
+        "A couple of quick questions so I can give you an accurate plan: "
+        "what's your current setup, and what does “done” look like for the first milestone? "
+        "I can share a similar build I've delivered and a rough timeline."
     )
+    return " ".join(parts)

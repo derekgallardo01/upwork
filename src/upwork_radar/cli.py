@@ -42,6 +42,18 @@ def _in_wheelhouse(job: Job) -> bool:
     return any(term in blob for term in _WHEELHOUSE)
 
 
+def _posted_str(job: Job) -> str:
+    """Friendly 'Xm/Xh/Xd ago' from posted_minutes; fall back to raw text."""
+    m = job.posted_minutes
+    if m is None:
+        return job.posted_raw or "—"
+    if m < 60:
+        return f"{m}m ago"
+    if m < 60 * 24:
+        return f"{m // 60}h ago"
+    return f"{m // (60 * 24)}d ago"
+
+
 def _pay_str(job: Job) -> str:
     if job.pricing_type == "fixed" and job.budget is not None:
         return f"${int(job.budget)} fixed"
@@ -87,7 +99,7 @@ def write_markdown(jobs: list[Job], path: str, top: int) -> None:
         lines.append(
             f"| {i} | {job.score:.3f} | {job.fit:.2f} | {title} | "
             f"{_pay_str(job)} | {job.proposals_raw or '—'} | "
-            f"{job.posted_raw or '—'} | {elig} |"
+            f"{_posted_str(job)} | {elig} |"
         )
     lines.append("")
 
@@ -105,7 +117,7 @@ def write_markdown(jobs: list[Job], path: str, top: int) -> None:
         lines.append(
             f"- **Pay:** {_pay_str(job)} · **Level:** {job.experience or '—'} · "
             f"**Proposals:** {job.proposals_raw or '—'} · **Posted:** "
-            f"{job.posted_raw or '—'} ago"
+            f"{_posted_str(job)}"
         )
         client = (
             f"{job.client_country or '—'}, "
