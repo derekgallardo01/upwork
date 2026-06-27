@@ -12,24 +12,36 @@ ranks by **fit × low-competition × budget × freshness** so the right jobs flo
 to the top.
 
 No scraping, no login, no API keys, **no third-party dependencies** — it works on
-text you paste from your own logged-in feed.
+data from your own logged-in feed.
+
+## Two ways to feed it
+
+**A. One-click bookmarklet (recommended).** A browser bookmark that reads the
+job data Upwork already embeds in the page and downloads a clean `feed.json` —
+no select-all, more accurate fields (exact spend, real timestamps, hourly
+min/max). It runs in your own browser when you click it; it's not a bot. Setup:
+[`BOOKMARKLET.md`](BOOKMARKLET.md). A sample export is at `data/feed_sample.json`.
+
+**B. Paste the page text (fallback).** Open the feed, select-all, save to a
+`.txt`. A sample 604-job scrape is at `data/feed_sample.txt`.
+
+The analyzer auto-detects the format from the file extension (`.json` → bookmarklet
+export, anything else → page text).
 
 ## Quick start
 
 ```bash
-# 1. Open your Upwork "Find work" feed, select-all, and save the page text to a file.
-#    (a sample 604-job scrape is included at data/feed_sample.txt)
-
-# 2. Run the analyzer
+# Bookmarklet JSON (recommended)
 PYTHONPATH=src python3 -m upwork_radar analyze \
-    --feed data/feed_sample.txt \
-    --profile profile.json \
-    --top 8 \
-    --out out
+    --feed data/feed_sample.json --profile profile.json --top 8 --out out
 
-# 3. Read the results
-#    out/shortlist.md   ranked table + top-N detail + draft proposal openers
-#    out/shortlist.csv  every job with full score columns (open in Excel and sort)
+# …or saved page text
+PYTHONPATH=src python3 -m upwork_radar analyze \
+    --feed data/feed_sample.txt --profile profile.json --top 8 --out out
+
+# Read the results
+#   out/shortlist.md   ranked table + top-N detail (with job links) + draft proposal openers
+#   out/shortlist.csv  every job with full score columns (open in Excel and sort)
 ```
 
 Example console output:
@@ -50,7 +62,9 @@ Top 8:
 
 | Stage | File | What it does |
 |-------|------|--------------|
-| Parse | `src/upwork_radar/parse.py` | Splits the feed on each `moreabout "<title>"` anchor and extracts title, posted age, proposal count, pricing, skills, and client signals. |
+| Capture | `bookmarklet.js` | One click in your browser → clean `feed.json` from Upwork's embedded data. |
+| Parse (JSON) | `src/upwork_radar/parse_nuxt.py` | Loads the bookmarklet export into `Job` records (the accurate path). |
+| Parse (text) | `src/upwork_radar/parse.py` | Fallback: splits saved page text on each `moreabout "<title>"` anchor and extracts the same fields. |
 | Score | `src/upwork_radar/score.py` | Computes five 0–1 components and combines them with weights from `profile.json`. Flags jobs with residency requirements you can't meet. |
 | Propose | `src/upwork_radar/proposal.py` | Drafts a tailored 2–3 sentence opener for each top job (review before sending — never auto-submitted). |
 | Output | `src/upwork_radar/cli.py` | Writes `shortlist.md` + `shortlist.csv`. |
@@ -86,8 +100,12 @@ python3 -m pytest tests/ -q
 
 ```
 profile.json              your skills, weights, target rate (edit this)
-data/feed_sample.txt      sample 604-job feed, runs out of the box
-src/upwork_radar/         parse · score · proposal · cli
+bookmarklet.js            one-click feed capture (readable source)
+bookmarklet.url.txt       the same, minified into a clickable bookmark
+BOOKMARKLET.md            how to install + use the bookmarklet
+data/feed_sample.json     sample bookmarklet export (recommended input)
+data/feed_sample.txt      sample 604-job page-text scrape (fallback input)
+src/upwork_radar/         parse_nuxt · parse · score · proposal · cli
 tests/                    parser + scoring tests
 out/                      generated shortlist.md / shortlist.csv (gitignored)
 ```

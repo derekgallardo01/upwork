@@ -13,6 +13,7 @@ import os
 import sys
 
 from .parse import parse_feed_file
+from .parse_nuxt import parse_feed_json_file
 from .proposal import proposal_opener
 from .score import load_profile, score_and_rank
 from .models import Job
@@ -92,7 +93,10 @@ def write_markdown(jobs: list[Job], path: str, top: int) -> None:
 
     lines.append(f"## Top {top}: detail + draft proposal openers\n")
     for i, job in enumerate(jobs[:top], 1):
-        lines.append(f"### {i}. {job.title}\n")
+        heading = f"### {i}. {job.title}"
+        if job.url:
+            heading = f"### {i}. [{job.title}]({job.url})"
+        lines.append(heading + "\n")
         lines.append(
             f"- **Score {job.score:.3f}** — fit {job.fit:.2f}, "
             f"competition {job.competition:.2f}, budget {job.budget_score:.2f}, "
@@ -130,7 +134,11 @@ def write_markdown(jobs: list[Job], path: str, top: int) -> None:
 
 def cmd_analyze(args: argparse.Namespace) -> int:
     profile = load_profile(args.profile)
-    jobs = parse_feed_file(args.feed)
+    # A .json feed is the clean bookmarklet export; anything else is saved page text.
+    if args.feed.lower().endswith(".json"):
+        jobs = parse_feed_json_file(args.feed)
+    else:
+        jobs = parse_feed_file(args.feed)
     if not jobs:
         print(f"No jobs parsed from {args.feed!r}.", file=sys.stderr)
         return 1

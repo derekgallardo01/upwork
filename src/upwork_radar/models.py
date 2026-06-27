@@ -17,6 +17,7 @@ class Job:
     title: str
     description: str = ""
     skills: list[str] = field(default_factory=list)
+    url: Optional[str] = None
 
     # Posting metadata
     posted_raw: Optional[str] = None          # e.g. "19 minutes ago"
