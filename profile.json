@@ -1,0 +1,53 @@
+{
+  "name": "Derek G.",
+  "title": "Microsoft AI & Power Platform Developer | Copilot Studio, Power Apps, Power Automate",
+  "location": "US",
+  "languages": ["English", "Spanish"],
+  "target_rate": 75,
+
+  "_comment": "Keyword tiers drive the 'fit' score. Edit freely to retune. Keys are matched case-insensitively against the job title, skills, and description. A title match counts more than a description match (see score.py).",
+  "keywords": {
+    "strong": {
+      "weight": 1.0,
+      "terms": [
+        "copilot studio", "power automate", "power apps", "power platform",
+        "sharepoint", "dynamics 365", "power bi", "microsoft fabric",
+        "azure ai", "azure openai", "ai foundry", "microsoft 365", "m365",
+        "office 365"
+      ]
+    },
+    "medium": {
+      "weight": 0.6,
+      "terms": [
+        "copilot", "claude", "ai agent", "agentic", "automation", "workflow",
+        "rag", "azure", "dataverse", "low-code", "no-code", "make.com",
+        "zapier", "n8n", "asana"
+      ]
+    },
+    "weak": {
+      "weight": 0.3,
+      "terms": [
+        "ai", "artificial intelligence", "python", "c#", "sql", "asp.net",
+        "rest api", "chatbot", "llm", "openai", "gpt", "integration",
+        "dashboard", "data"
+      ]
+    }
+  },
+
+  "intersection_bonus": 0.25,
+  "_intersection_comment": "Added to fit when a job names BOTH a Microsoft product AND AI/agent/copilot/claude work — Derek's differentiated sweet spot.",
+
+  "weights": {
+    "fit": 0.45,
+    "competition": 0.20,
+    "budget": 0.15,
+    "freshness": 0.12,
+    "client_quality": 0.08
+  },
+
+  "_eligibility_comment": "Jobs requiring residency in these countries are flagged ineligible (Derek is US-based). 'US/U.S.-based' requirements are treated as eligible-plus.",
+  "exclude_country_requirements": [
+    "canada", "canadian", "united kingdom", "uk resident", "australia",
+    "india", "philippines", "germany", "france", "lisbon", "portugal"
+  ]
+}
