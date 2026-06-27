@@ -48,7 +48,7 @@
     var pv = client && client.paymentVerificationStatus;
     if (pv === 1 || pv === "1") return true;
     if (typeof pv === "string") return /^verif/i.test(pv);
-    return false; // 0 / 2 / null => unverified
+    return false;
   }
 
   function normalize(job) {
