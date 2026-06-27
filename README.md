@@ -1,111 +1,60 @@
-# upwork-radar
+# Upwork success kit — Microsoft AI & Power Platform
 
-Turn a saved Upwork **"Find work" feed** into a ranked shortlist of the jobs
-worth your time — scored against your own profile — plus a draft proposal opener
-for the top matches.
+A complete system for winning Microsoft-niche work on Upwork, in three layers:
 
-Built for a Microsoft AI & Power Platform freelancer: the feed is dominated by
-generic Python/LLM "AI engineer" posts, but the jobs *you* win are the ones at
-the **Microsoft × AI intersection** (Copilot Studio, Power Automate, SharePoint,
-Azure AI). Chasing the most common job type is a race to the bottom; this tool
-ranks by **fit × low-competition × budget × freshness** so the right jobs float
-to the top.
+1. **Find the right jobs** — a job-feed analyzer (`upwork-radar`) that ranks a saved
+   feed by fit to your profile, so you stop chasing the saturated generic-AI pile.
+2. **Prove you can deliver** — 10 portfolio assets that each run offline, double as
+   reusable delivery accelerators, and ship as paste-ready Project Catalog offers.
+3. **Convert** — viewable proof and a go-to-market playbook that turn the above into
+   sent proposals and published listings.
 
-No scraping, no login, no API keys, **no third-party dependencies** — it works on
-data from your own logged-in feed.
-
-## Two ways to feed it
-
-**A. One-click bookmarklet (recommended).** A browser bookmark that reads the
-job data Upwork already embeds in the page and downloads a clean `feed.json` —
-no select-all, more accurate fields (exact spend, real timestamps, hourly
-min/max). It runs in your own browser when you click it; it's not a bot. Setup:
-[`BOOKMARKLET.md`](BOOKMARKLET.md). A sample export is at `data/feed_sample.json`.
-
-**B. Paste the page text (fallback).** Open the feed, select-all, save to a
-`.txt`. A sample 604-job scrape is at `data/feed_sample.txt`.
-
-The analyzer auto-detects the format from the file extension (`.json` → bookmarklet
-export, anything else → page text).
-
-## Quick start
+Built for a Microsoft AI & Power Platform freelancer. The whole thing is **stdlib-only
+Python 3.11**, runs offline with no keys or scraping, and commits no secrets.
 
 ```bash
-# Bookmarklet JSON (recommended)
-PYTHONPATH=src python3 -m upwork_radar analyze \
-    --feed data/feed_sample.json --profile profile.json --top 8 --out out
-
-# …or saved page text
-PYTHONPATH=src python3 -m upwork_radar analyze \
-    --feed data/feed_sample.txt --profile profile.json --top 8 --out out
-
-# Read the results
-#   out/shortlist.md   ranked table + top-N detail (with job links) + draft proposal openers
-#   out/shortlist.csv  every job with full score columns (open in Excel and sort)
+python run_all.py          # run the radar + all 6 runnable accelerators end to end
+python -m pytest -q        # 52 tests across the radar + assets
 ```
 
-Example console output:
+## What's here
 
-```
-Parsed 604 unique jobs (192 in wheelhouse, 601 eligible).
+| Path | What it is |
+|------|------------|
+| [`RADAR.md`](RADAR.md) | **The job-feed analyzer** — full docs: capture a feed, rank it, draft openers. |
+| [`assets/`](assets/README.md) | **The 10 portfolio assets** — 4 horizontal (every engagement) + 6 accelerators (one per niche cluster). Each runs offline with pluggable real adapters. |
+| [`proof/`](proof/README.md) | **Viewable evidence** — rendered dashboards, screenshots, transcripts. What you paste into proposals and portfolio items. |
+| [`PLAYBOOK.md`](PLAYBOOK.md) | **Go-to-market** — profile rewrite, Project Catalog launch order, weekly proposal engine, asset→job cheat sheet. |
+| [`BOOKMARKLET.md`](BOOKMARKLET.md) | One-click capture of your Upwork feed into clean JSON (ToS-safe, runs in your browser). |
+| `src/upwork_radar/` | The analyzer source (parse · score · proposal · cli). |
+| `run_all.py` | Runs every demo in the repo with a pass/fail summary. |
 
-Top 8:
-  1. 0.948  CIPP Expert Needed - MSP Policy Standardization (Intune, SharePoint)
-  2. 0.897  Set up Asana Automate flow: Asana Timesheets → Excel/SharePoint
-  3. 0.837  SharePoint Intranet Design & Document Management Optimization Review
-  4. 0.829  Implementation partner
-  5. 0.802  Power Automate, SharePoint, Microsoft Lists, MS Teams, Excel expert
-  ...
-```
+## The strategy in one paragraph
 
-## How it works
-
-| Stage | File | What it does |
-|-------|------|--------------|
-| Capture | `bookmarklet.js` | One click in your browser → clean `feed.json` from Upwork's embedded data. |
-| Parse (JSON) | `src/upwork_radar/parse_nuxt.py` | Loads the bookmarklet export into `Job` records (the accurate path). |
-| Parse (text) | `src/upwork_radar/parse.py` | Fallback: splits saved page text on each `moreabout "<title>"` anchor and extracts the same fields. |
-| Score | `src/upwork_radar/score.py` | Computes five 0–1 components and combines them with weights from `profile.json`. Flags jobs with residency requirements you can't meet. |
-| Propose | `src/upwork_radar/proposal.py` | Drafts a tailored 2–3 sentence opener for each top job (review before sending — never auto-submitted). |
-| Output | `src/upwork_radar/cli.py` | Writes `shortlist.md` + `shortlist.csv`. |
-
-### Scoring components
-
-- **fit** — weighted keyword match (title/skills count more than description),
-  with a bonus when a job names **both** a Microsoft product and AI/agent work.
-- **competition** — inverse of the proposal count (`Fewer than 5` is best).
-- **budget** — hourly midpoint vs your target rate, or a log scale for fixed jobs.
-- **freshness** — decays from "just posted" to ~zero over two weeks.
-- **client_quality** — payment verified, spend, rating.
-- **eligibility** — residency requirements you can't meet penalize the score and
-  the job is marked `⛔` in the shortlist.
-
-## Tuning
-
-Everything lives in `profile.json` — no code changes needed:
-
-- `keywords` — the strong/medium/weak term tiers that drive **fit**. Add your own.
-- `weights` — how much each component counts toward the final score.
-- `intersection_bonus` — extra fit for Microsoft × AI jobs.
-- `exclude_country_requirements` — residencies to flag as ineligible.
-- `target_rate` — your hourly rate, used to normalize pay.
-
-## Tests
-
-```bash
-python3 -m pytest tests/ -q
-```
+The 604-job feed analysis showed the generic "AI engineer" jobs are a race to the
+bottom; the wins are at the **Microsoft × AI intersection** (Copilot Studio, Power
+Automate, SharePoint, Power BI/Fabric, Power Apps), where clients ask you to *prove*
+capability. So: the **radar** points you at the right jobs, the **assets** are the proof
+and the accelerator that lets you deliver them profitably, the **proof** folder makes
+that visible to clients who'll never run code, and the **playbook** sequences it into a
+repeatable weekly motion. Start with [`PLAYBOOK.md`](PLAYBOOK.md).
 
 ## Layout
 
 ```
-profile.json              your skills, weights, target rate (edit this)
-bookmarklet.js            one-click feed capture (readable source)
-bookmarklet.url.txt       the same, minified into a clickable bookmark
-BOOKMARKLET.md            how to install + use the bookmarklet
-data/feed_sample.json     sample bookmarklet export (recommended input)
-data/feed_sample.txt      sample 604-job page-text scrape (fallback input)
-src/upwork_radar/         parse_nuxt · parse · score · proposal · cli
-tests/                    parser + scoring tests
-out/                      generated shortlist.md / shortlist.csv (gitignored)
+README.md          this file — start here
+PLAYBOOK.md        go-to-market checklist
+RADAR.md           job-feed analyzer docs
+BOOKMARKLET.md     feed capture
+run_all.py         run every demo
+profile.json       your skills/weights/rate (drives the radar)
+src/upwork_radar/   analyzer: parse_nuxt · parse · score · proposal · cli
+assets/            10 portfolio assets (horizontal/ + accelerators/)
+proof/             screenshots + transcripts for proposals
+data/              sample feeds (json + 604-job text)
+tests/             analyzer tests (assets carry their own)
 ```
+
+## License
+
+[MIT](LICENSE).
