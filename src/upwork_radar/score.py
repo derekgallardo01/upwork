@@ -42,6 +42,23 @@ _AI_TERMS = re.compile(
     re.I,
 )
 
+# Fixed budgets below this (USD) are treated as placeholder/junk, not real scope.
+MIN_PLAUSIBLE_FIXED = 20
+
+# Nationality adjectives mapped to the country term used in the exclude list, so
+# a title like "Australian Power Platform Contractor" is caught even without a
+# "based in ..." phrase.
+_NATIONALITY = {
+    "canadian": "canada",
+    "australian": "australia",
+    "british": "united kingdom",
+    "indian": "india",
+    "german": "germany",
+    "french": "france",
+    "filipino": "philippines",
+    "portuguese": "portugal",
+}
+
 
 def load_profile(path: str) -> dict:
     with open(path, "r", encoding="utf-8") as fh:
@@ -75,6 +92,11 @@ def _budget_score(job: Job, target_rate: float) -> float:
             return 0.5
         return min(1.0, mid / (target_rate * 1.5))
     if job.pricing_type == "fixed" and job.budget is not None:
+        # Implausibly low fixed budgets (e.g. "$5") are almost always placeholder
+        # values, not the real scope — de-rank them rather than letting a strong
+        # fit float them to the top.
+        if job.budget < MIN_PLAUSIBLE_FIXED:
+            return 0.1
         # $50 -> ~0.16, $200 -> ~0.46, $500 -> ~0.66, $1000 -> ~0.8, $2k+ -> ~1
         import math
 
@@ -143,17 +165,33 @@ def _client_quality_score(job: Job) -> float:
 def _check_eligibility(job: Job, profile: dict) -> tuple[bool, str]:
     """Detect residency requirements Derek (US-based) can't meet."""
     blob = f"{job.title} {job.description}".lower()
-    for country in profile.get("exclude_country_requirements", []):
-        c = country.lower()
-        if c in blob and re.search(
+    excluded = {c.lower() for c in profile.get("exclude_country_requirements", [])}
+
+    # Nationality adjective in the TITLE (e.g. "Australian ... Contractor") is a
+    # strong location signal even with no "based in" phrasing.
+    title_low = job.title.lower()
+    for adj, country in _NATIONALITY.items():
+        if country in excluded and re.search(rf"\b{adj}\b", title_low):
+            return False, f"requires {country.title()} residency"
+
+    for country in excluded:
+        if country in blob and re.search(
             r"(based in|located in|resident|residing|must be (?:a )?|only)\s*[^.]{0,30}"
-            + re.escape(c),
+            + re.escape(country),
             blob,
         ):
             return False, f"requires {country.title()} residency"
         # Common phrasing: "<country> resident" / "<country>-based"
-        if re.search(rf"\b{re.escape(c)}\b[ -](resident|based|only)", blob):
+        if re.search(rf"\b{re.escape(country)}\b[ -](resident|based|only)", blob):
             return False, f"requires {country.title()} residency"
+        # Nationality adjective anywhere with a person/role noun nearby.
+        for adj, c2 in _NATIONALITY.items():
+            if c2 == country and re.search(
+                rf"\b{adj}\b\s*(resident|citizen|contractor|developer|freelancer|"
+                rf"based|only)",
+                blob,
+            ):
+                return False, f"requires {country.title()} residency"
     note = ""
     if re.search(r"\b(u\.s\.|us|united states)[ -]?(based|only|resident)", blob):
         note = "US-based preferred (eligible+)"

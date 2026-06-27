@@ -19,7 +19,7 @@ PROFILE = {
     "intersection_bonus": 0.25,
     "weights": {"fit": 0.45, "competition": 0.20, "budget": 0.15,
                 "freshness": 0.12, "client_quality": 0.08},
-    "exclude_country_requirements": ["canada"],
+    "exclude_country_requirements": ["canada", "australia"],
 }
 
 
@@ -79,6 +79,39 @@ def test_ineligible_penalized():
     # Penalty pushes it below a clean eligible job of similar shape.
     clean = score_job(_ms_ai_job(), PROFILE)
     assert job.score < clean.score
+
+
+def test_nationality_adjective_in_title_ineligible():
+    job = Job(
+        title="Australian Power Platform Contractor — Power Automate / SharePoint",
+        description="Ongoing support for our Power Automate flows.",
+        proposals_raw="Fewer than 5", pricing_type="hourly",
+        rate_low=55.0, rate_high=95.0, posted_minutes=100,
+    )
+    score_job(job, PROFILE)
+    assert job.eligible is False
+    assert "Australia" in job.eligibility_note
+
+
+def test_placeholder_budget_deranked():
+    junk = Job(
+        title="SharePoint Intranet Review",
+        description="Review our SharePoint intranet and document management.",
+        skills=["Microsoft SharePoint"],
+        proposals_raw="Fewer than 5", pricing_type="fixed", budget=5.0,
+        posted_minutes=200,
+    )
+    real = Job(
+        title="SharePoint Intranet Review",
+        description="Review our SharePoint intranet and document management.",
+        skills=["Microsoft SharePoint"],
+        proposals_raw="Fewer than 5", pricing_type="fixed", budget=500.0,
+        posted_minutes=200,
+    )
+    score_job(junk, PROFILE)
+    score_job(real, PROFILE)
+    assert junk.budget_score == 0.1
+    assert junk.score < real.score
 
 
 def test_ranking_orders_by_score():
