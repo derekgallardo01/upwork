@@ -24,6 +24,7 @@ python -m pytest -q        # 52 tests across the radar + assets
 | [`RADAR.md`](RADAR.md) | **The job-feed analyzer** — full docs: capture a feed, rank it, draft openers. |
 | [`assets/`](assets/README.md) | **The 10 portfolio assets** — 4 horizontal (every engagement) + 6 accelerators (one per niche cluster). Each runs offline with pluggable real adapters. |
 | [`proof/`](proof/README.md) | **Viewable evidence** — rendered dashboards, screenshots, transcripts. What you paste into proposals and portfolio items. |
+| [`standalone/`](standalone/README.md) | **Publish-ready copies** of all 10 assets — each a clean, self-contained, repo-ready package (no radar/playbook/pricing references) for use as a public portfolio repo. |
 | [`PLAYBOOK.md`](PLAYBOOK.md) | **Go-to-market** — profile rewrite, Project Catalog launch order, weekly proposal engine, asset→job cheat sheet. |
 | [`BOOKMARKLET.md`](BOOKMARKLET.md) | One-click capture of your Upwork feed into clean JSON (ToS-safe, runs in your browser). |
 | `src/upwork_radar/` | The analyzer source (parse · score · proposal · cli). |
